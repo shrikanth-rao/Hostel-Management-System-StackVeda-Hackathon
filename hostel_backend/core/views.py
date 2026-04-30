@@ -190,19 +190,77 @@ def book_room(request):
 
     try:
         user = User.objects.get(id=user_id)
-        room = Room.objects.get(id=room_id)
+        new_room = Room.objects.get(id=room_id)
 
-        # ❌ full check
-        if room.occupants.count() >= room.capacity:
+        # ❌ If new room is full
+        if new_room.occupants.count() >= new_room.capacity:
             return Response({"error": "Room is full"})
 
-        # ❌ already booked
-        if room.occupants.filter(id=user.id).exists():
-            return Response({"error": "Already booked"})
+        # 🔁 Remove user from any previous room
+        for room in Room.objects.all():
+            if room.occupants.filter(id=user.id).exists():
+                room.occupants.remove(user)
 
-        room.occupants.add(user)
+        # ✅ Add to new room
+        new_room.occupants.add(user)
 
-        return Response({"message": "Room booked successfully"})
+        return Response({"message": "Room assigned successfully"})
+
+    except Exception as e:
+        return Response({"error": str(e)})
+    
+@api_view(['GET'])
+def my_room(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+
+        for room in Room.objects.all():
+            if room.occupants.filter(id=user.id).exists():
+                return Response({
+                    "room": room.number
+                })
+
+        return Response({"room": None})
+
+    except:
+        return Response({"error": "User not found"})
+    
+@api_view(['GET'])
+def find_roommate(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+
+        # Get all other students
+        candidates = User.objects.exclude(id=user.id).filter(role="student")
+
+        best_match = None
+        best_score = -1
+
+        for c in candidates:
+            score = 0
+
+            # 🎯 Matching logic
+            if c.course == user.course:
+                score += 3
+            if c.year == user.year:
+                score += 2
+            if c.sleep_schedule == user.sleep_schedule:
+                score += 5
+
+            if score > best_score:
+                best_score = score
+                best_match = c
+
+        if best_match:
+            return Response({
+                "name": best_match.username,
+                "course": best_match.course,
+                "year": best_match.year,
+                "sleep": best_match.sleep_schedule,
+                "score": best_score
+            })
+
+        return Response({"message": "No match found"})
 
     except Exception as e:
         return Response({"error": str(e)})

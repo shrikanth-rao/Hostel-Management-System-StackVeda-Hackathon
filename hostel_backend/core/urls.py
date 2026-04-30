@@ -12,6 +12,8 @@ urlpatterns = [
     path('rooms/', views.get_rooms),
     path('book-room/', views.book_room),
     path('complaints/<int:id>/', views.update_status),
+    path('my-room/<int:user_id>/', views.my_room),
+    path('match-roommate/<int:user_id>/', views.find_roommate),
 ]
 
 # 👇 ADD THIS AT THE END (DO NOT CREATE NEW urlpatterns)
