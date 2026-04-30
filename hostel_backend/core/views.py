@@ -5,7 +5,7 @@ import google.generativeai as genai
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-
+from .models import Payment
 # 🔐 Configure Gemini
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
@@ -54,20 +54,22 @@ from django.contrib.auth import authenticate
 
 @api_view(['POST'])
 def login(request):
+    from django.contrib.auth import authenticate
+
     username = request.data.get("username")
     password = request.data.get("password")
 
     user = authenticate(username=username, password=password)
 
     if user is not None:
+        create_payment_if_not_exists(user)   # 👈 HERE
+
         return Response({
             "user_id": user.id,
             "role": user.role
         })
-    else:
-        return Response({
-            "error": "Invalid username or password"
-        })
+
+    return Response({"error": "Invalid username or password"})
 
 # 📝 ADD COMPLAINT
 @api_view(['POST'])
@@ -113,7 +115,7 @@ def get_complaints(request):
 
     return Response(list(complaints.values()))
 
-    return Response(data)
+
 
 
 
@@ -264,3 +266,50 @@ def find_roommate(request, user_id):
 
     except Exception as e:
         return Response({"error": str(e)})
+    
+@api_view(['GET'])
+def get_payments(request):
+    payments = Payment.objects.all()
+
+    data = []
+    for p in payments:
+        data.append({
+            "id": p.id,
+            "user": p.user.username,
+            "amount": p.amount,
+            "status": p.status
+        })
+
+    return Response(data)
+
+@api_view(['PATCH'])
+def mark_paid(request, id):
+    try:
+        payment = Payment.objects.get(id=id)
+        payment.status = "Paid"
+        payment.save()
+
+        return Response({"message": "Payment updated"})
+    except:
+        return Response({"error": "Not found"})
+    
+def create_payment_if_not_exists(user):
+    from .models import Payment
+    if not Payment.objects.filter(user=user).exists():
+        Payment.objects.create(
+            user=user,
+            amount=user.hostel_fee
+        )
+@api_view(['GET'])
+def get_user(request, id):
+    user = User.objects.get(id=id)
+
+    # get any admin (or assigned later)
+    admin = User.objects.filter(role="admin").first()
+
+    return Response({
+        "username": user.username,
+        "hostel_fee": user.hostel_fee,
+        "role": user.role,
+        "admin_name": admin.username if admin else "Not Assigned"
+    })

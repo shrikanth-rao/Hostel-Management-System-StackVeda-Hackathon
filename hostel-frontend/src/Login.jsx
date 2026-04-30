@@ -24,14 +24,15 @@ function Login() {
         navigate("/student");
       }
 
-    } catch {
+    } catch (err) {
       alert("Invalid login");
+      console.error(err);
     }
   };
 
   return (
     <div className="login-container">
-      
+
       {/* LEFT SIDE */}
       <div className="left-panel">
         <h1>Hostel Management</h1>

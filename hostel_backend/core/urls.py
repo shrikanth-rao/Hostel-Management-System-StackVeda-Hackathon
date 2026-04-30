@@ -14,6 +14,9 @@ urlpatterns = [
     path('complaints/<int:id>/', views.update_status),
     path('my-room/<int:user_id>/', views.my_room),
     path('match-roommate/<int:user_id>/', views.find_roommate),
+    path('payments/', views.get_payments),
+    path('pay/<int:id>/', views.mark_paid),
+    path('user/<int:id>/', views.get_user),
 ]
 
 # 👇 ADD THIS AT THE END (DO NOT CREATE NEW urlpatterns)

@@ -1,112 +1,92 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import "./Dashboard.css";
+import { useNavigate } from "react-router-dom";
 
 function Student() {
-  const [text, setText] = useState("");
-  const [image, setImage] = useState(null);
+  const [user, setUser] = useState({});
   const [rooms, setRooms] = useState([]);
   const [myRoom, setMyRoom] = useState(null);
+  const [text, setText] = useState("");
+  const [image, setImage] = useState(null);
   const [match, setMatch] = useState(null);
-  const [loadingMatch, setLoadingMatch] = useState(false);
+
+  const navigate = useNavigate();
+
+  // 🔹 Fetch user details
+  const fetchUser = async () => {
+    const id = localStorage.getItem("user_id");
+    const res = await axios.get(`http://127.0.0.1:8000/api/user/${id}/`);
+    setUser(res.data);
+  };
 
   // 🔹 Fetch rooms
   const fetchRooms = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/rooms/");
-      setRooms(res.data);
-    } catch (err) {
-      console.error("Error fetching rooms", err);
-    }
+    const res = await axios.get("http://127.0.0.1:8000/api/rooms/");
+    setRooms(res.data);
   };
 
-  // 🔹 Fetch user's room
+  // 🔹 Fetch my room
   const fetchMyRoom = async () => {
-    try {
-      const user_id = localStorage.getItem("user_id");
-      const res = await axios.get(
-        `http://127.0.0.1:8000/api/my-room/${user_id}/`
-      );
-      setMyRoom(res.data.room);
-    } catch (err) {
-      console.error("Error fetching room", err);
-    }
+    const user_id = localStorage.getItem("user_id");
+    const res = await axios.get(
+      `http://127.0.0.1:8000/api/my-room/${user_id}/`
+    );
+    setMyRoom(res.data.room);
   };
 
   // 🔹 Book room
   const bookRoom = async (room_id) => {
-    try {
-      const user_id = localStorage.getItem("user_id");
+    const user_id = localStorage.getItem("user_id");
 
-      const res = await axios.post(
-        "http://127.0.0.1:8000/api/book-room/",
-        {
-          user_id,
-          room_id
-        }
-      );
+    const res = await axios.post(
+      "http://127.0.0.1:8000/api/book-room/",
+      { user_id, room_id }
+    );
 
-      alert(res.data.message || res.data.error);
-
-      fetchRooms();
-      fetchMyRoom();
-    } catch (err) {
-      alert("Error booking room");
-      console.error(err);
-    }
+    alert(res.data.message || res.data.error);
+    fetchRooms();
+    fetchMyRoom();
   };
 
-  // 🔹 AI roommate match
+  // 🔹 AI match
   const findMatch = async () => {
-    try {
-      setLoadingMatch(true);
+    const user_id = localStorage.getItem("user_id");
 
-      const user_id = localStorage.getItem("user_id");
+    const res = await axios.get(
+      `http://127.0.0.1:8000/api/match-roommate/${user_id}/`
+    );
 
-      const res = await axios.get(
-        `http://127.0.0.1:8000/api/match-roommate/${user_id}/`
-      );
-
-      setMatch(res.data);
-    } catch (err) {
-      alert("Error finding match");
-      console.error(err);
-    } finally {
-      setLoadingMatch(false);
-    }
+    setMatch(res.data);
   };
 
-  // 🔹 Submit complaint
+  // 🔹 Complaint
   const submitComplaint = async () => {
-    if (!text.trim()) {
-      alert("Please enter a complaint");
-      return;
-    }
+    const user_id = localStorage.getItem("user_id");
 
-    try {
-      const user_id = localStorage.getItem("user_id");
+    const formData = new FormData();
+    formData.append("user_id", Number(user_id));
+    formData.append("text", text);
+    if (image) formData.append("image", image);
 
-      const formData = new FormData();
-      formData.append("user_id", Number(user_id));
-      formData.append("text", text);
-      if (image) formData.append("image", image);
+    await axios.post(
+      "http://127.0.0.1:8000/api/add-complaint/",
+      formData
+    );
 
-      await axios.post(
-        "http://127.0.0.1:8000/api/add-complaint/",
-        formData
-      );
-
-      alert("Complaint Submitted!");
-      setText("");
-      setImage(null);
-    } catch (err) {
-      alert("Error submitting complaint");
-      console.error(err);
-    }
+    alert("Complaint submitted!");
+    setText("");
+    setImage(null);
   };
 
-  // 🔹 Load on start
+  // 🔹 Logout
+  const logout = () => {
+    localStorage.clear();
+    navigate("/");
+  };
+
   useEffect(() => {
+    fetchUser();
     fetchRooms();
     fetchMyRoom();
   }, []);
@@ -114,19 +94,48 @@ function Student() {
   return (
     <div className="dashboard">
 
-      {/* Sidebar */}
+      {/* 🔵 SIDEBAR */}
       <div className="sidebar">
-        <h2>🎓 Student</h2>
+        <h2 style={{ fontWeight: "bold", letterSpacing: "1px" }}>
+         HostelHub
+        </h2>
         <p>Dashboard</p>
         <p>Rooms</p>
         <p>Complaints</p>
+        <p>Payments</p>
+        <p onClick={logout}>Logout</p>
+        <p onClick={() => navigate("/student")}>Home</p>
       </div>
 
-      {/* Main */}
+      {/* 🟣 MAIN */}
       <div className="main">
 
-        {/* 🟣 ROOM SECTION */}
-        <h2>Your Room: {myRoom ? `Room ${myRoom}` : "Not Assigned"}</h2>
+        {/* 🔹 TOP BAR */}
+        <div className="topbar">
+          <h2>Welcome back, {user.username}</h2>
+          <h3>{user.username}</h3>
+        </div>
+
+        {/* 🔹 STATS */}
+        <div className="stats">
+          <div className="card">
+            <h3>Your Room</h3>
+            <p>{myRoom ? `Room ${myRoom}` : "Not Assigned"}</p>
+          </div>
+
+          <div className="card">
+            <h3>Hostel Fee</h3>
+            <p>₹{user.hostel_fee}</p>
+          </div>
+
+          <div className="card">
+            <h3>Your Management</h3>
+            <p>{user.admin_name}</p>
+          </div>
+        </div>
+
+        {/* 🔹 ROOM BOOKING */}
+        <h3 style={{ marginTop: "20px" }}>Available Rooms</h3>
 
         <div className="stats">
           {rooms.map((r) => (
@@ -139,59 +148,43 @@ function Student() {
                 onClick={() => bookRoom(r.id)}
                 disabled={r.available === 0}
               >
-                {r.available === 0 ? "Full" : "Select Room"}
+                {r.available === 0 ? "Full" : "Select"}
               </button>
             </div>
           ))}
         </div>
 
         {/* 🤖 AI MATCH */}
-        <div className="table-box" style={{ marginTop: "30px" }}>
-          <h3>🤖 AI Roommate Match</h3>
+        <div className="card" style={{ marginTop: "20px" }}>
+          <h3>AI Roommate Match</h3>
 
           <button className="btn" onClick={findMatch}>
-            {loadingMatch ? "Finding..." : "Find Best Match"}
+            Find Match
           </button>
 
-          {match && match.name ? (
-            <div style={{
-              marginTop: "15px",
-              background: "rgba(255,255,255,0.1)",
-              padding: "15px",
-              borderRadius: "10px"
-            }}>
-              <p><b>👤 Name:</b> {match.name}</p>
-              <p><b>📚 Course:</b> {match.course}</p>
-              <p><b>🎓 Year:</b> {match.year}</p>
-              <p><b>🌙 Sleep:</b> {match.sleep}</p>
-              <p><b>⭐ Score:</b> {match.score}</p>
+          {match && (
+            <div style={{ marginTop: "10px" }}>
+              <p>{match.name}</p>
+              <p>{match.course}</p>
+              <p>{match.score}</p>
             </div>
-          ) : match?.message ? (
-            <p style={{ marginTop: "10px" }}>{match.message}</p>
-          ) : null}
+          )}
         </div>
 
-        {/* 🟢 COMPLAINT SECTION */}
-        <div className="table-box" style={{ marginTop: "30px" }}>
+        {/* 🟢 COMPLAINT */}
+        <div className="card" style={{ marginTop: "20px" }}>
           <h3>Raise Complaint</h3>
 
           <textarea
-            placeholder="Enter complaint"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px"
-            }}
+            placeholder="Enter complaint"
+            style={{ width: "100%", padding: "10px" }}
           />
 
           <br /><br />
 
-          <input
-            type="file"
-            onChange={(e) => setImage(e.target.files[0])}
-          />
+          <input type="file" onChange={(e) => setImage(e.target.files[0])} />
 
           <br /><br />
 

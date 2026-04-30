@@ -7,14 +7,14 @@ function StudentLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
+  
   const handleLogin = async () => {
     try {
       const res = await axios.post("http://127.0.0.1:8000/api/login/", {
         username,
         password
       });
-
+      console.log("LOGIN RESPONSE:", res.data);
       if (res.data.role !== "student") {
         alert("Not a student account");
         return;

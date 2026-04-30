@@ -9,10 +9,12 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
 
-    # extra fields (optional)
     course = models.CharField(max_length=50, blank=True)
     year = models.IntegerField(null=True, blank=True)
     sleep_schedule = models.CharField(max_length=20, blank=True)
+
+    # ✅ ADD THIS
+    hostel_fee = models.IntegerField(default=5000)
 
     def __str__(self):
         return self.username
@@ -51,4 +53,13 @@ class Complaint(models.Model):
 
     def __str__(self):
         return self.text[:30]
+    
+class Payment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    status = models.CharField(default="Pending", max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.status}"
     
