@@ -82,3 +82,43 @@ th, td {
 img {
   border-radius: 8px;
 }
+/* Room cards */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.room-card {
+  padding: 20px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.room-card.full {
+  border-left: 5px solid red;
+}
+
+.room-card.partial {
+  border-left: 5px solid orange;
+}
+
+.room-card.empty {
+  border-left: 5px solid lightgreen;
+}
+
+/* Progress bar */
+.bar {
+  height: 10px;
+  background: #333;
+  border-radius: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: #00c6ff;
+}

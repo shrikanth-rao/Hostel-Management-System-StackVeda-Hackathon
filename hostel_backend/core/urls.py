@@ -8,6 +8,9 @@ urlpatterns = [
     path('login/', views.login),
     path('add-complaint/', views.add_complaint),
     path('complaints/', views.get_complaints),
+    
+    path('rooms/', views.get_rooms),
+    path('book-room/', views.book_room),
     path('complaints/<int:id>/', views.update_status),
 ]
 

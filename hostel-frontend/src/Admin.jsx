@@ -3,11 +3,15 @@ import axios from "axios";
 import "./Dashboard.css";
 
 function Admin() {
-  const [data, setData] = useState([]);
+  const [complaints, setComplaints] = useState([]);
+  const [rooms, setRooms] = useState([]);
 
   const fetchData = async () => {
-    const res = await axios.get("http://127.0.0.1:8000/api/complaints/");
-    setData(res.data);
+    const c = await axios.get("http://127.0.0.1:8000/api/complaints/");
+    const r = await axios.get("http://127.0.0.1:8000/api/rooms/");
+
+    setComplaints(c.data);
+    setRooms(r.data);
   };
 
   useEffect(() => {
@@ -16,11 +20,6 @@ function Admin() {
     return () => clearInterval(interval);
   }, []);
 
-  const total = data.length;
-  const high = data.filter(c => c.priority === "High").length;
-  const medium = data.filter(c => c.priority === "Medium").length;
-  const low = data.filter(c => c.priority === "Low").length;
-
   return (
     <div className="dashboard">
 
@@ -28,24 +27,45 @@ function Admin() {
       <div className="sidebar">
         <h2>🏠 Admin</h2>
         <p>Dashboard</p>
-        <p>Complaints</p>
         <p>Rooms</p>
-        <p>Payments</p>
+        <p>Complaints</p>
       </div>
 
       {/* Main */}
       <div className="main">
-        <div className="header">Admin Dashboard</div>
+        <h2>Admin Dashboard</h2>
 
-        {/* Stats */}
-        <div className="stats">
-          <div className="card">Total: {total}</div>
-          <div className="card high">High: {high}</div>
-          <div className="card medium">Medium: {medium}</div>
-          <div className="card low">Low: {low}</div>
+        {/* 🟣 ROOM SECTION */}
+        <h3>Room Occupancy</h3>
+        <div className="room-grid">
+          {rooms.map(r => {
+            const percent = (r.occupied / r.capacity) * 100;
+
+            return (
+              <div key={r.id} className={`room-card ${r.status}`}>
+                <h3>Room {r.number}</h3>
+                <p>{r.occupied} / {r.capacity}</p>
+
+                <div className="bar">
+                  <div
+                    className="fill"
+                    style={{ width: `${percent}%` }}
+                  ></div>
+                </div>
+
+                <p>
+                  {r.status === "full" && "🔴 Full"}
+                  {r.status === "partial" && "🟠 Partial"}
+                  {r.status === "empty" && "🟢 Empty"}
+                </p>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Table */}
+        {/* 🟢 COMPLAINTS */}
+        <h3 style={{ marginTop: "30px" }}>Complaints</h3>
+
         <div className="table-box">
           <table>
             <thead>
@@ -53,21 +73,15 @@ function Admin() {
                 <th>Complaint</th>
                 <th>Priority</th>
                 <th>Status</th>
-                <th>Image</th>
               </tr>
             </thead>
 
             <tbody>
-              {data.map((c, i) => (
+              {complaints.map((c, i) => (
                 <tr key={i}>
                   <td>{c.text}</td>
                   <td>{c.priority}</td>
                   <td>{c.status}</td>
-                  <td>
-                    {c.image ? (
-                      <img src={`http://127.0.0.1:8000${c.image}`} width="80" />
-                    ) : "No Image"}
-                  </td>
                 </tr>
               ))}
             </tbody>

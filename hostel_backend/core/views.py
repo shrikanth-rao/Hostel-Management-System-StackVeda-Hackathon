@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import User, Complaint
+from .models import User, Complaint, Room
 import google.generativeai as genai
 from django.conf import settings
 from django.utils import timezone
@@ -99,7 +99,7 @@ def add_complaint(request):
         return Response({"error": str(e)})
 
 
-# 📋 GET COMPLAINTS
+
 @api_view(['GET'])
 def get_complaints(request):
     complaints = Complaint.objects.all()
@@ -113,6 +113,10 @@ def get_complaints(request):
 
     return Response(list(complaints.values()))
 
+    return Response(data)
+
+
+
 # 🔄 UPDATE STATUS
 @api_view(['PATCH'])
 def update_status(request, id):
@@ -123,6 +127,33 @@ def update_status(request, id):
         return Response({"message": "Updated"})
     except Exception as e:
         return Response({"error": str(e)})
+
+@api_view(['GET'])
+def get_rooms(request):
+    rooms = Room.objects.all()
+
+    data = []
+    for r in rooms:
+        occupied = r.occupants.count()
+        capacity = r.capacity
+
+        if occupied == capacity:
+            status = "full"
+        elif occupied == 0:
+            status = "empty"
+        else:
+            status = "partial"
+
+        data.append({
+            "id": r.id,
+            "number": r.number,
+            "capacity": capacity,
+            "occupied": occupied,
+            "available": r.available_slots(),
+            "status": status
+        })
+
+    return Response(data)
 
 
 # 🤖 GEMINI AI
@@ -151,3 +182,27 @@ def ai_classify(text):
     except Exception as e:
         print("AI Error:", e)
         return "Low"
+    
+@api_view(['POST'])
+def book_room(request):
+    user_id = request.data.get("user_id")
+    room_id = request.data.get("room_id")
+
+    try:
+        user = User.objects.get(id=user_id)
+        room = Room.objects.get(id=room_id)
+
+        # ❌ full check
+        if room.occupants.count() >= room.capacity:
+            return Response({"error": "Room is full"})
+
+        # ❌ already booked
+        if room.occupants.filter(id=user.id).exists():
+            return Response({"error": "Already booked"})
+
+        room.occupants.add(user)
+
+        return Response({"message": "Room booked successfully"})
+
+    except Exception as e:
+        return Response({"error": str(e)})

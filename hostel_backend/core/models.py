@@ -22,7 +22,18 @@ class User(AbstractUser):
 class Room(models.Model):
     number = models.IntegerField()
     capacity = models.IntegerField()
-    occupants = models.ManyToManyField(User, blank=True)
+
+    occupants = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="rooms"
+    )
+
+    def available_slots(self):
+        return self.capacity - self.occupants.count()
+
+    def is_full(self):
+        return self.occupants.count() >= self.capacity
 
     def __str__(self):
         return f"Room {self.number}"
