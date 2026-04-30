@@ -45,7 +45,6 @@ function Admin() {
     fetchData();
   };
 
-  // 🔹 Auto refresh
   useEffect(() => {
     fetchData();
     fetchUser();
@@ -54,22 +53,31 @@ function Admin() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🔹 Revenue (ONLY PAID)
+  // 🔹 Revenue (only paid)
   const totalRevenue = payments
     .filter((p) => p.status === "Paid")
     .reduce((sum, p) => sum + p.amount, 0);
+
+  const pendingPayments = payments.filter(p => p.status === "Pending").length;
 
   return (
     <div className="dashboard">
 
       {/* 🔵 SIDEBAR */}
       <div className="sidebar">
-        <h2>🏠 HostelHub</h2>
-        <p>Dashboard</p>
-        <p>Rooms</p>
-        <p>Complaints</p>
-        <p>Payments</p>
-        <p onClick={logout}>Logout</p>
+        <h2 className="logo">🏠 HostelHub</h2>
+
+        <div className="menu">
+          <p>📊 Dashboard</p>
+          <p>🛏 Rooms</p>
+          <p>📢 Complaints</p>
+          <p>💳 Payments</p>
+        </div>
+
+        <div className="bottom">
+          <p onClick={() => navigate("/admin")}>🏠 Home</p>
+          <p onClick={logout}>🚪 Logout</p>
+        </div>
       </div>
 
       {/* 🟣 MAIN */}
@@ -78,39 +86,44 @@ function Admin() {
         {/* 🔹 TOP BAR */}
         <div className="topbar">
           <h2>Admin Dashboard</h2>
-          <h3>{user.username}</h3>
+          <div className="profile">{user.username}</div>
         </div>
 
-        {/* 💰 REVENUE */}
+        {/* 🔹 STATS */}
         <div className="stats">
           <div className="card">
-            <h3>Total Revenue</h3>
+            <h3>💰 Revenue</h3>
             <p>₹{totalRevenue}</p>
+          </div>
+
+          <div className="card">
+            <h3>📢 Complaints</h3>
+            <p>{complaints.length}</p>
+          </div>
+
+          <div className="card">
+            <h3>💳 Pending Payments</h3>
+            <p>{pendingPayments}</p>
           </div>
         </div>
 
         {/* 🟣 ROOMS */}
-        <h3 style={{ marginTop: "20px" }}>Room Occupancy</h3>
+        <h3 className="section">Room Occupancy</h3>
 
-        <div className="stats">
+        <div className="grid">
           {rooms.map((r) => {
             const percent = (r.occupied / r.capacity) * 100;
 
             return (
-              <div className="card" key={r.id}>
+              <div className="card room-card" key={r.id}>
                 <h3>Room {r.number}</h3>
                 <p>{r.occupied} / {r.capacity}</p>
 
-                <div style={{
-                  background: "#333",
-                  height: "6px",
-                  borderRadius: "5px"
-                }}>
-                  <div style={{
-                    width: `${percent}%`,
-                    background: "#00c6ff",
-                    height: "100%"
-                  }}></div>
+                <div className="bar">
+                  <div
+                    className="fill"
+                    style={{ width: `${percent}%` }}
+                  ></div>
                 </div>
 
                 <p>
@@ -124,7 +137,7 @@ function Admin() {
         </div>
 
         {/* 🟢 COMPLAINTS */}
-        <h3 style={{ marginTop: "30px" }}>Complaints</h3>
+        <h3 className="section">Complaints</h3>
 
         <div className="card">
           <table>
@@ -149,7 +162,7 @@ function Admin() {
         </div>
 
         {/* 💳 PAYMENTS */}
-        <h3 style={{ marginTop: "30px" }}>Payments</h3>
+        <h3 className="section">Payments</h3>
 
         <div className="card">
           <table>

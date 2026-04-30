@@ -7,14 +7,14 @@ function StudentLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  
+
   const handleLogin = async () => {
     try {
       const res = await axios.post("http://127.0.0.1:8000/api/login/", {
         username,
         password
       });
-      console.log("LOGIN RESPONSE:", res.data);
+
       if (res.data.role !== "student") {
         alert("Not a student account");
         return;
@@ -22,7 +22,6 @@ function StudentLogin() {
 
       localStorage.setItem("user_id", res.data.user_id);
       localStorage.setItem("role", res.data.role);
-
       navigate("/student");
 
     } catch {
@@ -32,6 +31,12 @@ function StudentLogin() {
 
   return (
     <div className="login-container">
+
+      <div className="left-panel">
+        <h1>HostelHub</h1>
+        <p>Smart Hostel Management System</p>
+      </div>
+
       <div className="right-panel">
         <div className="login-card">
           <h2>Student Login</h2>
@@ -50,6 +55,7 @@ function StudentLogin() {
           <button onClick={handleLogin}>Login</button>
         </div>
       </div>
+
     </div>
   );
 }

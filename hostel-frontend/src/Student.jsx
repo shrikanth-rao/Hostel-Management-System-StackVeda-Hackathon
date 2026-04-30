@@ -13,7 +13,7 @@ function Student() {
 
   const navigate = useNavigate();
 
-  // 🔹 Fetch user details
+  // 🔹 Fetch user
   const fetchUser = async () => {
     const id = localStorage.getItem("user_id");
     const res = await axios.get(`http://127.0.0.1:8000/api/user/${id}/`);
@@ -26,7 +26,7 @@ function Student() {
     setRooms(res.data);
   };
 
-  // 🔹 Fetch my room
+  // 🔹 My room
   const fetchMyRoom = async () => {
     const user_id = localStorage.getItem("user_id");
     const res = await axios.get(
@@ -52,11 +52,9 @@ function Student() {
   // 🔹 AI match
   const findMatch = async () => {
     const user_id = localStorage.getItem("user_id");
-
     const res = await axios.get(
       `http://127.0.0.1:8000/api/match-roommate/${user_id}/`
     );
-
     setMatch(res.data);
   };
 
@@ -96,50 +94,54 @@ function Student() {
 
       {/* 🔵 SIDEBAR */}
       <div className="sidebar">
-        <h2 style={{ fontWeight: "bold", letterSpacing: "1px" }}>
-         HostelHub
-        </h2>
-        <p>Dashboard</p>
-        <p>Rooms</p>
-        <p>Complaints</p>
-        <p>Payments</p>
-        <p onClick={logout}>Logout</p>
-        <p onClick={() => navigate("/student")}>Home</p>
+        <h2 className="logo">🏠 HostelHub</h2>
+
+        <div className="menu">
+          <p>🏠 Dashboard</p>
+          <p>🛏 Rooms</p>
+          <p>📢 Complaints</p>
+          <p>💳 Payments</p>
+        </div>
+
+        <div className="bottom">
+          <p onClick={() => navigate("/student")}>🏠 Home</p>
+          <p onClick={logout}>🚪 Logout</p>
+        </div>
       </div>
 
       {/* 🟣 MAIN */}
       <div className="main">
 
-        {/* 🔹 TOP BAR */}
+        {/* 🔹 TOPBAR */}
         <div className="topbar">
-          <h2>Welcome back, {user.username}</h2>
-          <h3>{user.username}</h3>
+          <h2>Welcome back, {user.username} 👋</h2>
+          <div className="profile">{user.username}</div>
         </div>
 
         {/* 🔹 STATS */}
         <div className="stats">
           <div className="card">
-            <h3>Your Room</h3>
+            <h3>🏠 Your Room</h3>
             <p>{myRoom ? `Room ${myRoom}` : "Not Assigned"}</p>
           </div>
 
           <div className="card">
-            <h3>Hostel Fee</h3>
+            <h3>💰 Hostel Fee</h3>
             <p>₹{user.hostel_fee}</p>
           </div>
 
           <div className="card">
-            <h3>Your Management</h3>
-            <p>{user.admin_name}</p>
+            <h3>👨‍💼 Management</h3>
+            <p>{user.admin_name || "Admin"}</p>
           </div>
         </div>
 
-        {/* 🔹 ROOM BOOKING */}
-        <h3 style={{ marginTop: "20px" }}>Available Rooms</h3>
+        {/* 🔹 ROOMS */}
+        <h3 className="section">Available Rooms</h3>
 
-        <div className="stats">
+        <div className="grid">
           {rooms.map((r) => (
-            <div className="card" key={r.id}>
+            <div className="card room-card" key={r.id}>
               <h3>Room {r.number}</h3>
               <p>{r.occupied} / {r.capacity}</p>
 
@@ -155,38 +157,33 @@ function Student() {
         </div>
 
         {/* 🤖 AI MATCH */}
-        <div className="card" style={{ marginTop: "20px" }}>
-          <h3>AI Roommate Match</h3>
+        <div className="card">
+          <h3>🤖 AI Roommate Match</h3>
 
           <button className="btn" onClick={findMatch}>
             Find Match
           </button>
 
           {match && (
-            <div style={{ marginTop: "10px" }}>
-              <p>{match.name}</p>
+            <div className="match-box">
+              <p><b>{match.name}</b></p>
               <p>{match.course}</p>
-              <p>{match.score}</p>
+              <p>Score: {match.score}</p>
             </div>
           )}
         </div>
 
         {/* 🟢 COMPLAINT */}
-        <div className="card" style={{ marginTop: "20px" }}>
+        <div className="card">
           <h3>Raise Complaint</h3>
 
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Enter complaint"
-            style={{ width: "100%", padding: "10px" }}
+            placeholder="Describe your issue..."
           />
 
-          <br /><br />
-
           <input type="file" onChange={(e) => setImage(e.target.files[0])} />
-
-          <br /><br />
 
           <button className="btn" onClick={submitComplaint}>
             Submit
